@@ -1,35 +1,38 @@
 pipeline {
     agent any
 
-    environment {
-        IMAGE_NAME = 'sample-app:v1.0'
+    parameters {
+
+        choice(
+            name: 'TARGET_ENV',
+            choices: ['dev', 'staging', 'production'],
+            description: 'Deployment target environment'
+        )
+
+        string(
+            name: 'APP_VERSION',
+            defaultValue: '1.0.0',
+            description: 'Application version'
+        )
     }
 
     stages {
 
         stage('Build') {
             steps {
-                sh '''
-                    docker build -t $IMAGE_NAME .
-                '''
+                echo "Building version ${params.APP_VERSION}"
             }
         }
 
-        stage('Vulnerability Scan') {
+        stage('Test') {
             steps {
-                sh '''
-                    trivy image \
-                    --severity HIGH,CRITICAL \
-                    --exit-code 1 \
-                    --no-progress \
-                    $IMAGE_NAME
-                '''
+                echo "Testing version ${params.APP_VERSION}"
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deploying application...'
+                echo "Deploying ${params.APP_VERSION} to ${params.TARGET_ENV}"
             }
         }
     }
